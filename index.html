@@ -1,47 +1,105 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Markdown Display with Milligram CSS</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.4.1/milligram.min.css" integrity="sha512-4EJxjvAxJ2FlWtZKHXrFjqmg7xM8Cb6JczQYbgcCaA/UFcGJGtCI2qPQNt07CBgNcI85/kCJXZCqJDfHr42dTQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-</head>
-<body>
-    <div class="container">
-        <div id="markdown-content">
-            <!-- Markdown content will be rendered here -->
-        </div>
-    </div>
-    
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebGPT</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.4.1/milligram.css" />
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  </head>
+
+  <body style="margin: 20px;">
+    <div class="container">
+      <div id="markdown-content"></div>
+    </div>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const markdown = `# Markdown Title
+      let openai_key = location.hash.slice(1) || localStorage.getItem("openai_key");
 
-- List item 1
-- List item 2
-- List item 3
+      if (location.hash) {
+        // users can share they OpenAI key in the URL hash, if they really want to
+        history.pushState(null, "", location.href.split("#")[0]); // Clear the hash in the URL
+        localStorage.setItem("openai_key", openai_key);
+      } else if (!openai_key) {
+        openai_key = prompt("Please enter your OpenAI key");
+        localStorage.setItem("openai_key", openai_key);
+      }
 
-This is a paragraph with a [link](#).`;
+      const instructions = `You are a GPT that creates useful and interesting applications, which use publicly available information and APIs.
 
-            // Using marked.parse() to convert Markdown to HTML
-            document.getElementById('markdown-content').innerHTML = marked.parse(markdown);
+You always answer with a webpage defined with markdown and some html tags to create forms.
+
+Every time the user clicks a link with a relative URL on that page, you will receive that URL. If the user submits a form, you’ll receive that form payload in the URL.
+
+Using those, you’ll then reply with a new markdown webpage (with html forms, if needed), and the above steps will be repeated.
+
+Start with a page with a subset of 10 buttons, each one of those will send the user to a totally different app you’ll create, and a search input to search other apps you’ll also create.`;
+
+      const MessageType = {
+        SYSTEM: "system",
+        USER: "user",
+        ASSISTANT: "assistant",
+      };
+      const chatHistory = [{ role: MessageType.SYSTEM, content: instructions }];
+      getInitialSuggestionsFromAI();
+
+      async function getInitialSuggestionsFromAI() {
+        return await getChatCompletionFromAI("/");
+      }
+
+      document.addEventListener("click", (event) => {
+        if (event.target.tagName === "A") {
+          event.preventDefault();
+          var destinationURL = event.target.getAttribute("href");
+          history.pushState(null, "", destinationURL);
+          getChatCompletionFromAI(destinationURL);
+        }
+      });
+
+      document.addEventListener("submit", (event) => {
+        event.preventDefault();
+        var form = event.target;
+        var actionURL = form.action;
+        var formData = new FormData(form);
+        var queryString = new URLSearchParams(formData).toString();
+        var fullURL = actionURL + "?" + queryString;
+        var relativeURL = fullURL.replace(location.origin, "");
+        history.pushState(null, "", relativeURL);
+        getChatCompletionFromAI(relativeURL);
+      });
+
+      async function getChatCompletionFromAI(userMessage) {
+        document.body.style.cursor = "wait";
+        document.body.style.pointerEvents = "none";
+        document.body.style.opacity = "0.5";
+        chatHistory.push({ role: MessageType.USER, content: userMessage });
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + openai_key,
+          },
+          body: JSON.stringify({
+            model: "gpt-4-turbo-preview",
+            messages: chatHistory,
+            format: { type: "json_object" },
+          }),
         });
-
-        // Intercept all navigation
-        document.addEventListener('click', function (event) {
-            if (event.target.tagName === 'A' || event.target.tagName === 'FORM') {
-                event.preventDefault();
-                console.log('Navigation intercepted!');
-                // You can handle the navigation here, e.g., by using fetch API or changing location
-            }
-        });
-
-        document.addEventListener('submit', function(event) {
-            event.preventDefault();
-            console.log('Form submission intercepted!');
-            // Handle form submission here
-        });
+        if (response.status === 401) {
+          localStorage.removeItem("openai_key");
+          document.location.reload();
+        }
+        if (!response.ok) return "Error: " + (await response.text());
+        const { choices } = await response.json();
+        const text = choices[0].message.content;
+        const regExExtract = text.match(/```markdown\n([\s\S]*?)```/);
+        const markdown = regExExtract ? regExExtract[1]: text;
+        document.getElementById("markdown-content").innerHTML = marked.parse(markdown);
+        document.body.style.cursor = "default";
+        document.body.style.pointerEvents = "";
+        document.body.style.opacity = "";
+      }
     </script>
-</body>
+  </body>
 </html>
