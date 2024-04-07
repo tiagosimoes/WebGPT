@@ -49,14 +49,13 @@ Start with a page with a subset of 10 buttons, each one of those will send the u
       }
 
 
-      document.addEventListener("click", onDocumentClick);
-      document.addEventListener("touch", onDocumentClick);
+      document.addEventListener("click", onLinkClick );
 
-      function onDocumentClick(event) {
+      function onDocumClick(event) {
         if (event.target.tagName === "A") {
           event.preventDefault();
           var destinationURL = event.target.getAttribute("href");
-          history.pushState(null, "", destinationURL);
+          //history.pushState(null, "", destinationURL);
           getChatCompletionFromAI(destinationURL);
         }
       }
@@ -70,7 +69,7 @@ Start with a page with a subset of 10 buttons, each one of those will send the u
         var queryString = new URLSearchParams(formData).toString();
         var fullURL = actionURL + "?" + queryString;
         var relativeURL = fullURL.replace(location.origin, "");
-        history.pushState(null, "", relativeURL);
+        //history.pushState(null, "", relativeURL);
         getChatCompletionFromAI(relativeURL);
       });
 
