@@ -30,7 +30,7 @@ Every time the user clicks a link with a relative URL on that page, you will rec
 
 Using those, you’ll then reply with a new markdown webpage (with html forms, if needed), and the above steps will be repeated.
 
-Start with a page with a subset of 10 buttons, each one of those will send the user to a totally different app you’ll create, and a search input to search other apps you’ll also create.`;
+Start with a page with a subset of 10 links, each one of those will send the user to a totally different app you’ll create, and a search input to search other apps you’ll also create.`;
 
       const MessageType = {
         SYSTEM: "system",
@@ -71,9 +71,9 @@ Start with a page with a subset of 10 buttons, each one of those will send the u
         document.body.style.pointerEvents = "";
         document.body.style.opacity = "";
       }
-      
+
       document.addEventListener("click", (event) => {
-        if (event.target.tagName === "A") {
+        if (event.target.tagName === "A" || event.target.closest("a")) {
           event.preventDefault();
           var destinationURL = event.target.getAttribute("href");
           getChatCompletionFromAI(destinationURL);
