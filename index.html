@@ -63,6 +63,7 @@ Start with a page with a subset of 10 links, each one of those will send the use
         }
         if (!response.ok) return "Error: " + (await response.text());
         const { choices } = await response.json();
+        window.scrollTo(0, 0);
         const text = choices[0].message.content;
         const regExExtract = text.match(/```markdown\n([\s\S]*?)```/);
         const markdown = regExExtract ? regExExtract[1]: text;
