@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown Display with Milligram CSS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.4.1/milligram.min.css" integrity="sha512-4EJxjvAxJ2FlWtZKHXrFjqmg7xM8Cb6JczQYbgcCaA/UFcGJGtCI2qPQNt07CBgNcI85/kCJXZCqJDfHr42dTQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+    <div class="container">
+        <div id="markdown-content">
+            <!-- Markdown content will be rendered here -->
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const markdown = `# Markdown Title
+
+- List item 1
+- List item 2
+- List item 3
+
+This is a paragraph with a [link](#).`;
+
+            // Using marked.parse() to convert Markdown to HTML
+            document.getElementById('markdown-content').innerHTML = marked.parse(markdown);
+        });
+
+        // Intercept all navigation
+        document.addEventListener('click', function (event) {
+            if (event.target.tagName === 'A' || event.target.tagName === 'FORM') {
+                event.preventDefault();
+                console.log('Navigation intercepted!');
+                // You can handle the navigation here, e.g., by using fetch API or changing location
+            }
+        });
+
+        document.addEventListener('submit', function(event) {
+            event.preventDefault();
+            console.log('Form submission intercepted!');
+            // Handle form submission here
+        });
+    </script>
+</body>
+</html>
