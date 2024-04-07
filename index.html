@@ -73,9 +73,10 @@ Start with a page with a subset of 10 links, each one of those will send the use
       }
 
       document.addEventListener("click", (event) => {
-        if (event.target.tagName === "A" || event.target.closest("a")) {
+        const a = event.target.tagName === "A"? event.target || event.target.closest("a");
+        if (a) {
           event.preventDefault();
-          var destinationURL = event.target.getAttribute("href");
+          var destinationURL = a.getAttribute("href");
           getChatCompletionFromAI(destinationURL);
         }
       });
