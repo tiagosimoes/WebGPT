@@ -48,14 +48,19 @@ Start with a page with a subset of 10 buttons, each one of those will send the u
         return await getChatCompletionFromAI("/");
       }
 
-      document.addEventListener("click", (event) => {
+
+      document.addEventListener("click", onDocumentClick);
+      document.addEventListener("touch", onDocumentClick);
+
+      function onDocumentClick(event) {
         if (event.target.tagName === "A") {
           event.preventDefault();
           var destinationURL = event.target.getAttribute("href");
           history.pushState(null, "", destinationURL);
           getChatCompletionFromAI(destinationURL);
         }
-      });
+      }
+
 
       document.addEventListener("submit", (event) => {
         event.preventDefault();
