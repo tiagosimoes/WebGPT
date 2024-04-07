@@ -9,14 +9,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.4.1/milligram.css" />
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   </head>
-
   <body style="margin: 20px;">
-    <div class="container">
-      <div id="markdown-content"></div>
-    </div>
+    <div id="markdown-content"></div>
     <script>
       let openai_key = location.hash.slice(1) || localStorage.getItem("openai_key");
-
       if (location.hash) {
         // users can share they OpenAI key in the URL hash, if they really want to
         history.pushState(null, "", location.href.split("#")[0]); // Clear the hash in the URL
@@ -42,36 +38,7 @@ Start with a page with a subset of 10 buttons, each one of those will send the u
         ASSISTANT: "assistant",
       };
       const chatHistory = [{ role: MessageType.SYSTEM, content: instructions }];
-      getInitialSuggestionsFromAI();
-
-      async function getInitialSuggestionsFromAI() {
-        return await getChatCompletionFromAI("/");
-      }
-
-
-      document.addEventListener("click", onLinkClick );
-
-      function onDocumClick(event) {
-        if (event.target.tagName === "A") {
-          event.preventDefault();
-          var destinationURL = event.target.getAttribute("href");
-          //history.pushState(null, "", destinationURL);
-          getChatCompletionFromAI(destinationURL);
-        }
-      }
-
-
-      document.addEventListener("submit", (event) => {
-        event.preventDefault();
-        var form = event.target;
-        var actionURL = form.action;
-        var formData = new FormData(form);
-        var queryString = new URLSearchParams(formData).toString();
-        var fullURL = actionURL + "?" + queryString;
-        var relativeURL = fullURL.replace(location.origin, "");
-        //history.pushState(null, "", relativeURL);
-        getChatCompletionFromAI(relativeURL);
-      });
+      getChatCompletionFromAI("/");
 
       async function getChatCompletionFromAI(userMessage) {
         document.body.style.cursor = "wait";
@@ -104,6 +71,25 @@ Start with a page with a subset of 10 buttons, each one of those will send the u
         document.body.style.pointerEvents = "";
         document.body.style.opacity = "";
       }
+      
+      document.addEventListener("click", (event) => {
+        if (event.target.tagName === "A") {
+          event.preventDefault();
+          var destinationURL = event.target.getAttribute("href");
+          getChatCompletionFromAI(destinationURL);
+        }
+      });
+
+      document.addEventListener("submit", (event) => {
+        event.preventDefault();
+        var form = event.target;
+        var actionURL = form.action;
+        var formData = new FormData(form);
+        var queryString = new URLSearchParams(formData).toString();
+        var fullURL = actionURL + "?" + queryString;
+        var relativeURL = fullURL.replace(location.origin, "");
+        getChatCompletionFromAI(relativeURL);
+      });
     </script>
   </body>
 </html>
